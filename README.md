@@ -1,0 +1,2 @@
+# vagrant-observability
+vagrant-observability
