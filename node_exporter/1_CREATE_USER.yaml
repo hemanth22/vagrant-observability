@@ -3,4 +3,4 @@
   roles:
     - hemanth22.createuser
   vars:
-    usern: prometheus
+    usern: node_exporter

@@ -1,10 +1,10 @@
 ---
-- name: Prepare and mount /dev/sdb to /prometheus
+- name: Prepare and mount /dev/sdb to /node_exporter
   hosts: localhost
   become: true
   vars:
     DIR_NAME: /node_exporter
-    NEW_MOUNT_REQ: /dev/sdb
+    NEW_MOUNT_REQ: /dev/sdc
 
   tasks:
     - name: Create mount directory
