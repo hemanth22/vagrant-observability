@@ -1,0 +1,15 @@
+#!/bin/bash
+
+LOGFILE="/grafana/prod/apps/logs/grafana.log"
+BINARY="/grafana/prod/apps/bin/grafana"
+CONFIG="/grafana/prod/apps/etc/custom.ini"
+DATAPATH="/grafana/prod/apps/data"
+
+export GF_LOG_MODE=console
+export GF_LOG_LEVEL=info
+export GF_LOG_FILE="${LOGFILE}"
+
+# Start Grafana in background and redirect output
+"${BINARY}/bin/grafana-server" web --config="${CONFIG}" > "${LOGFILE}" 2>&1 &
+
+echo "Grafana started with PID $!"

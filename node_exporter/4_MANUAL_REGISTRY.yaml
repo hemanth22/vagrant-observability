@@ -1,0 +1,38 @@
+- name: Configure Prometheus application directories and setup
+  hosts: localhost
+  gather_facts: false
+  vars:
+    APPNAME: "/prometheus"
+    PERMISSION_APPNAME: prometheus
+    BINARY: "{{ APPNAME }}/prod/apps/bin/"
+    CONFIG: "{{ APPNAME }}/prod/apps/etc/"
+    DATAPATH: "{{ APPNAME }}/prod/apps/data/"
+    LOGFILE: "{{ APPNAME }}/prod/apps/logs/"
+    PROMETHEUS_VERSION: "3.7.3"
+    PROMETHEUS_ARCHIVE: "prometheus-{{ PROMETHEUS_VERSION }}.linux-amd64.tar.gz"
+    PROMETHEUS_URL: "https://github.com/prometheus/prometheus/releases/download/v{{ PROMETHEUS_VERSION }}/{{ PROMETHEUS_ARCHIVE }}"
+    PROMETHEUS_ARCHIVE_DEST: "{{ BINARY }}/{{ PROMETHEUS_ARCHIVE }}"
+    EXTRACTION_PATH: "{{ BINARY }}/prometheus-{{ PROMETHEUS_VERSION }}.linux-amd64"
+
+  tasks:
+    - name: remove symbolic link for prometheus directory
+      ansible.builtin.file:
+        path: "{{ BINARY }}/prometheus"
+        state: absent
+
+    - name: remove symbolic link for prometheus.yml
+      ansible.builtin.file:
+        path: "{{ CONFIG }}/prometheus.yml"
+        state: absent
+
+    - name: Create symbolic link for prometheus directory
+      ansible.builtin.file:
+        src: "{{ EXTRACTION_PATH }}"
+        dest: "{{ BINARY }}/prometheus"
+        state: link
+
+    - name: Create symbolic link for prometheus.yml
+      ansible.builtin.file:
+        src: "{{ BINARY }}/prometheus/prometheus.yml"
+        dest: "{{ CONFIG }}/prometheus.yml"
+        state: link

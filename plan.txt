@@ -1,0 +1,43 @@
+mkdir -p /prometheus/prod/apps/bin/
+mkdir -p /prometheus/prod/apps/etc/
+mkdir -p /prometheus/prod/apps/data/
+mkdir -p /prometheus/prod/apps/logs/
+
+chown -R prometheus:prometheus /prometheus
+
+su - Prometheus
+
+chmod -R 750 /prometheus/prod/apps/bin/
+chmod -R 755 /prometheus/prod/apps/etc/
+chmod -R 755 /prometheus/prod/apps/data/
+chmod -R 755 /prometheus/prod/apps/logs/
+
+
+cd /prometheus/prod/apps/bin/
+wget https://github.com/prometheus/prometheus/releases/download/v3.7.3/prometheus-3.7.3.linux-amd64.tar.gz
+tar -xf prometheus-3.7.3.linux-amd64.tar.gz
+ln -s prometheus-3.7.3.linux-amd64 /prometheus/prod/apps/bin/prometheus
+ln -s /prometheus/prod/apps/bin/prometheus/prometheus.yml /prometheus/prod/apps/etc/prometheus.yml
+
+[prometheus@observability bin]$ cat start.sh
+#!/bin/bash
+LOGFILE="/prometheus/prod/apps/logs/prometheus.log"
+BINARY="/prometheus/prod/apps/bin/prometheus"
+CONFIG="/prometheus/prod/apps/etc/prometheus.yml"
+DATAPATH="/prometheus/prod/apps/data"
+exec ${BINARY}/prometheus --config.file="${CONFIG}" --storage.tsdb.path="${DATAPATH}" --web.listen-address=0.0.0.0:9090 >> "${LOGFILE}" 2>&1 &
+echo "Prometheus started with PID $!"
+
+
+[prometheus@observability bin]$ cat stop.sh
+pkill -9 -f prometheus
+
+
+
+
+need to check on below.
+
+
+--storage.tsdb.retention.time
+
+

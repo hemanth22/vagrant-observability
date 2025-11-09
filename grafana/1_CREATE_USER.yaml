@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  roles:
+    - hemanth22.createuser
+  vars:
+    usern: grafana

@@ -1,0 +1,67 @@
+- name: Configure grafana application directories and setup
+  hosts: localhost
+  gather_facts: false
+  vars:
+    APPNAME: "/grafana"
+    PERMISSION_APPNAME: grafana
+    BINARY: "{{ APPNAME }}/prod/apps/bin/"
+    CONFIG: "{{ APPNAME }}/prod/apps/etc/"
+    DATAPATH: "{{ APPNAME }}/prod/apps/data/"
+    LOGFILE: "{{ APPNAME }}/prod/apps/logs/"
+    GRAFANA_VERSION: "12.2.1"
+    GRAFANA_ARCHIVE: "grafana-enterprise_12.2.1_18655849634_linux_amd64.tar.gz"
+    GRAFANA_FOLDER: "grafana-12.2.1"
+    GRAFANA_URL: "https://dl.grafana.com/grafana-enterprise/release/{{ GRAFANA_VERSION }}/{{ GRAFANA_ARCHIVE }}"
+    GRAFANA_ARCHIVE_DEST: "{{ BINARY }}/{{ GRAFANA_ARCHIVE }}"
+    EXTRACTION_PATH: "{{ BINARY }}/{{ GRAFANA_FOLDER }}"
+
+  tasks:
+    - name: Set permissions on bin directory
+      ansible.builtin.file:
+        path: "{{ BINARY }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0750'
+
+    - name: Set permissions on etc directory
+      ansible.builtin.file:
+        path: "{{ CONFIG }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0755'
+
+    - name: Set permissions on data directory
+      ansible.builtin.file:
+        path: "{{ DATAPATH }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0755'
+
+    - name: Set permissions on logs directory
+      ansible.builtin.file:
+        path: "{{ LOGFILE }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0755'
+
+    - name: Download grafana tarball
+      ansible.builtin.get_url:
+        url: "{{ GRAFANA_URL }}"
+        dest: "{{ GRAFANA_ARCHIVE_DEST }}"
+        mode: '0644'
+
+    - name: Extract grafana tarball
+      ansible.builtin.unarchive:
+        src: "{{ GRAFANA_ARCHIVE_DEST }}"
+        dest: "{{ BINARY }}"
+        remote_src: true
+
+    - name: Create symbolic link for grafana directory
+      ansible.builtin.file:
+        src: "{{ EXTRACTION_PATH }}"
+        dest: "{{ BINARY }}/grafana"
+        state: link

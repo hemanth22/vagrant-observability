@@ -1,0 +1,41 @@
+- name: Create Prometheus directories and set ownership
+  hosts: localhost
+  vars:
+    APPNAME: "/prometheus"
+    PERMISSION_APPNAME: prometheus
+    BINARY: "{{ APPNAME }}/prod/apps/bin/"
+    CONFIG: "{{ APPNAME }}/prod/apps/etc/"
+    DATAPATH: "{{ APPNAME }}/prod/apps/data/"
+    LOGFILE: "{{ APPNAME }}/prod/apps/logs/"
+
+  tasks:
+    - name: Create BINARY directory
+      ansible.builtin.file:
+        path: "{{ BINARY }}"
+        state: directory
+        recurse: true
+
+    - name: Create CONFIG directory
+      ansible.builtin.file:
+        path: "{{ CONFIG }}"
+        state: directory
+        recurse: true
+
+    - name: Create DATAPATH directory
+      ansible.builtin.file:
+        path: "{{ DATAPATH }}"
+        state: directory
+        recurse: true
+
+    - name: Create LOGFILE directory
+      ansible.builtin.file:
+        path: "{{ LOGFILE }}"
+        state: directory
+        recurse: true
+
+    - name: Change ownership of /prometheus recursively
+      ansible.builtin.file:
+        path: "{{ APPNAME }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true

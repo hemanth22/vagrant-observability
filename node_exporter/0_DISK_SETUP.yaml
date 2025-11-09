@@ -1,0 +1,46 @@
+---
+- name: Prepare and mount /dev/sdb to /prometheus
+  hosts: localhost
+  become: true
+  vars:
+    DIR_NAME: /node_exporter
+    NEW_MOUNT_REQ: /dev/sdb
+
+  tasks:
+    - name: Create mount directory
+      file:
+        path: "{{ DIR_NAME }}"
+        state: directory
+        mode: '0755'
+
+    - name: Format the disk with ext4
+      filesystem:
+        fstype: ext4
+        dev: "{{ NEW_MOUNT_REQ }}"
+      when: NEW_MOUNT_REQ is defined
+
+    - name: Reload systemd daemon
+      command: systemctl daemon-reload 
+
+    - name: Mount the disk
+      mount:
+        path: "{{ DIR_NAME }}"
+        src: "{{ NEW_MOUNT_REQ }}"
+        fstype: ext4
+        state: mounted
+
+    - name: Get UUID of the disk
+      command: blkid -s UUID -o value {{ NEW_MOUNT_REQ }}
+      register: disk_uuid
+
+    - name: Backup /etc/fstab with timestamp
+      copy:
+        src: /etc/fstab
+        dest: "/etc/fstab.bkp_{{ ansible_date_time.date }}{{ ansible_date_time.time | regex_replace(':', '') }}"
+        remote_src: true
+
+    - name: Add entry to /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        line: "UUID={{ disk_uuid.stdout }} {{ DIR_NAME }} ext4 defaults 0 0"
+        state: present

@@ -1,0 +1,25 @@
+---
+- name: Expand disk partition and filesystem
+  hosts: localhost
+  vars:
+    disk_device: "/dev/sda"
+    partition_number: "5"
+    partition_path: "{{ disk_device }}{{ partition_number }}"
+
+  tasks:
+    - name: Check current partition size
+      command: "lsblk -b -n -o SIZE {{ partition_path }}"
+      register: partition_size
+
+    - name: Check disk size
+      command: "lsblk -b -n -o SIZE {{ disk_device }}"
+      register: disk_size
+
+    - name: Grow the partition
+      command: "growpart {{ disk_device }} {{ partition_number }}"
+      register: growpart_result
+      changed_when: "'CHANGED' in growpart_result.stdout"
+
+    - name: Expand the XFS filesystem
+      command: "xfs_growfs {{ partition_path }}"
+      when: growpart_result is succeeded

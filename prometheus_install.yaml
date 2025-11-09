@@ -1,0 +1,72 @@
+- name: Configure Prometheus application directories and setup
+  hosts: localhost
+  gather_facts: false
+  vars:
+    APPNAME: "/prometheus"
+    PERMISSION_APPNAME: prometheus
+    BINARY: "{{ APPNAME }}/prod/apps/bin/"
+    CONFIG: "{{ APPNAME }}/prod/apps/etc/"
+    DATAPATH: "{{ APPNAME }}/prod/apps/data/"
+    LOGFILE: "{{ APPNAME }}/prod/apps/logs/"
+    PROMETHEUS_VERSION: "3.7.3"
+    PROMETHEUS_ARCHIVE: "prometheus-{{ PROMETHEUS_VERSION }}.linux-amd64.tar.gz"
+    PROMETHEUS_URL: "https://github.com/prometheus/prometheus/releases/download/v{{ PROMETHEUS_VERSION }}/{{ PROMETHEUS_ARCHIVE }}"
+    PROMETHEUS_ARCHIVE_DEST: "{{ BINARY }}/{{ PROMETHEUS_ARCHIVE }}"
+    EXTRACTION_PATH: "{{ BINARY }}/prometheus-{{ PROMETHEUS_VERSION }}.linux-amd64"
+
+  tasks:
+    - name: Set permissions on bin directory
+      ansible.builtin.file:
+        path: "{{ BINARY }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0750'
+
+    - name: Set permissions on etc directory
+      ansible.builtin.file:
+        path: "{{ CONFIG }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0755'
+
+    - name: Set permissions on data directory
+      ansible.builtin.file:
+        path: "{{ DATAPATH }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0755'
+
+    - name: Set permissions on logs directory
+      ansible.builtin.file:
+        path: "{{ LOGFILE }}"
+        owner: "{{ PERMISSION_APPNAME }}"
+        group: "{{ PERMISSION_APPNAME }}"
+        recurse: true
+        mode: '0755'
+
+    - name: Download Prometheus tarball
+      ansible.builtin.get_url:
+        url: "{{ PROMETHEUS_URL }}"
+        dest: "{{ PROMETHEUS_ARCHIVE_DEST }}"
+        mode: '0644'
+
+    - name: Extract Prometheus tarball
+      ansible.builtin.unarchive:
+        src: "{{ PROMETHEUS_ARCHIVE_DEST }}"
+        dest: "{{ BINARY }}"
+        remote_src: true
+
+    - name: Create symbolic link for prometheus directory
+      ansible.builtin.file:
+        src: "{{ EXTRACTION_PATH }}"
+        dest: "{{ BINARY }}/prometheus"
+        state: link
+
+    - name: Create symbolic link for prometheus.yml
+      ansible.builtin.file:
+        src: "{{ BINARY }}/prometheus/prometheus.yml"
+        dest: "{{ CONFIG }}/prometheus.yml"
+        state: link
